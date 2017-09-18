@@ -1,0 +1,499 @@
+/*
+ * Tetris part A 
+ * TCSS 305: Programming Practicum, Winter 2016
+ */
+package view;
+
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.KeyEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.Observable;
+import java.util.Observer;
+
+import javax.swing.AbstractAction;
+import javax.swing.BorderFactory;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenuBar;
+import javax.swing.KeyStroke;
+import javax.swing.Timer;
+import javax.swing.border.Border;
+import javax.swing.border.EtchedBorder;
+
+import com.sun.prism.paint.Color;
+
+import model.Board;
+
+/**
+ * This class create the view of a Tetris game.
+ * @author Trinh Pham
+ * @version 122216
+ */
+public class TetrisGUI implements Observer, ActionListener, PropertyChangeListener,
+                                    FocusListener {
+    
+    /**
+     * Minimum size for the frame.
+     */
+    private static final Dimension MIN_SIZE = new Dimension(600, 400);
+    
+    /**
+     * Thousand milliseconds per minute.
+     */
+    private int myDelay = 1000;
+    
+    /**
+     * The main container for the game.
+     */
+    private final JFrame myFrame;
+    
+    /**
+     * The panel displays the game.
+     */
+    private TetrisPanel myGamePanel;
+    
+    /**
+     * The panel displays the next piece.
+     */
+    private NextPiecePanel myNextPiecePanel;
+    
+    /**
+     * The panel displays the score.
+     */
+    private ScorePanel myScorePanel;
+    
+    private TetrisMenu myMenu;
+    
+    private final Border myBorder;
+
+    /**
+     * The boolean which value is true if users pause the game.
+     */
+    private Boolean myPauseGame;
+    
+    private Boolean myDrawGrid;
+    /**
+     * The board that contains the data and control the game.
+     */
+    private Board myBoard;
+    
+    
+    /**
+     * The timer of the game.
+     */
+    private Timer myTimer;
+    
+    private boolean myGameRunning;
+    
+    private ArrayList<MyKeyAction> myActionList;
+    
+    private int myBoardWidth = 10;
+    private int myBoardHeight = 20;
+
+    /**
+     * Constructor to create a game display.
+     * @param theBoard The board with all the needed data.
+     */
+    public TetrisGUI() {
+        
+        myBoard = new Board(myBoardWidth, myBoardHeight);
+        myPauseGame = false;
+        myDrawGrid = false;
+       
+        myFrame = new JFrame("TCSS 305 Tetris");
+        myFrame.setMinimumSize(MIN_SIZE);
+
+        myFrame.setLocationRelativeTo(null);
+        myFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        
+        myTimer = new Timer(myDelay, this);
+        myBorder = BorderFactory.createMatteBorder(1, 1, 1, 1, java.awt.Color.black);
+        
+        
+        myGameRunning = false;
+        myPauseGame = false;
+        setupGUI();
+
+        start();
+        setupKeyBinding();
+
+
+    }
+    
+
+    
+    /**
+     * Method to start the game.
+     */
+    public void start() {
+     //   myTimer.start();
+  //      myScorePanel.addPropertyChangeListener(this);
+        myFrame.setResizable(false);
+        myFrame.setVisible(true);
+        myFrame.pack();
+    }
+    
+    public void startGame() {
+        start();
+        myGameRunning = true;
+        
+        enableActionList(true);
+
+       myBoard.newGame();
+        
+        
+        myTimer.start();
+    }
+    
+    public void endGame()   {
+        myTimer.stop();
+        myGameRunning = false;
+        enableActionList(false);  
+    }
+    public void setTimerDelay() {
+        myDelay = 1000;
+        myTimer.setDelay(myDelay);
+    }
+    
+    public void setRunning(final boolean theBoolean) {
+        myGameRunning = theBoolean;
+        myTimer.stop();
+    }
+    /**
+     * Method to setup the gridbag layout for the GUI.
+     */
+    public boolean getDrawGrid() {
+        return myDrawGrid;
+    }
+    public void setDrawGrid(final boolean theBoolean) {
+        myDrawGrid = theBoolean;
+    }
+    private void setupGUI() {
+
+        myMenu = new TetrisMenu(myBoard, myScorePanel, this);
+        myGamePanel = new TetrisPanel(myBoard, this);
+
+        myFrame.setJMenuBar(myMenu);
+        myFrame.setLayout(new GridBagLayout());
+
+        final int ten = 10;
+        final GBC c1 = new GBC(0, 0, 1, 4);
+        c1.setInsets(ten * 2);
+        
+        final JLabel nextPiece = new JLabel("Next Piece");
+        final GBC c2 = new GBC(1, 0, 1, 1);
+        c2.setInsets(ten * 4, 0, ten, ten * 2);
+      //  c2.anchor = GridBagConstraints.BELOW_BASELINE;
+
+        
+        myNextPiecePanel = new NextPiecePanel(myBoard, this);
+        final GBC c3 = new GBC(1, 1, 1, 1);
+        c3.setInsets(0, 0, 30, 20);
+        
+        final JLabel score = new JLabel("Score");
+        final GBC c4 = new GBC(1, 2, 1, 1);
+        c4.setInsets(50, 0, 0, 20);
+
+        myScorePanel = new ScorePanel(myBoard, this);
+      //  myMenu.getMyGameControl().addPropertyChangeListener(myScorePanel);
+        final GBC c5 = new GBC(1, 3, 1, 1);
+        c5.setInsets(0, 0, 0, 20);
+        
+        myFrame.add(myGamePanel, c1);
+        myFrame.add(nextPiece, c2);
+        myFrame.add(myNextPiecePanel, c3);
+        myFrame.add(score, c4);
+        myFrame.add(myScorePanel, c5);
+        
+        
+
+//        myBoard.addObserver(myGamePanel);
+//        myBoard.addObserver(myScorePanel);
+//        myBoard.addObserver(myNextPiecePanel);
+    }
+    
+    public void setGrid(final int theW, final int theH) {
+        endGame();
+        myFrame.remove(myGamePanel);
+        myBoard = new Board(theW, theH);
+        myGamePanel = new TetrisPanel(myBoard, this);
+        setupKeyBinding();
+        enableActionList(true);
+
+        final int ten = 10;
+        final GBC c1 = new GBC(0, 0, 1, 4);
+        c1.setInsets(ten * 2);
+        myFrame.add(myGamePanel, c1);
+        myGamePanel.repaint();
+
+    }
+    
+    
+    @Override
+    public void update(final Observable arg0, final Object theObject) {
+        
+        if (theObject instanceof Boolean) {
+            myBoard.newGame();
+        }       
+        
+        
+    }
+    
+    // To handle change in level from Score Panel
+    @Override
+    public void propertyChange(final PropertyChangeEvent theEvent) {
+        
+        // Get level update from Score Panel
+        if (theEvent.getPropertyName().equals("level")) {
+            final int minus = 200;
+            if (myDelay > 200) {
+                myDelay -= minus;
+            }
+            myTimer.setDelay(myDelay);
+        }
+        if (theEvent.getPropertyName().equals("new game")) {
+            myScorePanel.resetScore();
+        }
+    }
+    
+    /**
+     * Get the piece down for 1 row every delay interval of the timer.
+     */
+    @Override
+    public void actionPerformed(final ActionEvent theEvent) {
+        if (theEvent.getSource().equals(myTimer)) {
+            myBoard.down();      
+         
+        }
+        
+    }
+    
+    private void setupKeyBinding() {
+        
+        // Create an array list holds all the moving actions
+        myActionList = new ArrayList<MyKeyAction>();
+        myActionList.add(new MyKeyAction("rotate", myBoard));
+        myActionList.add(new MyKeyAction("left", myBoard));
+        myActionList.add(new MyKeyAction("right", myBoard));
+        myActionList.add(new MyKeyAction("down", myBoard));
+        myActionList.add(new MyKeyAction("drop", myBoard));
+
+        
+        myGamePanel.getInputMap().put(KeyStroke.getKeyStroke("UP"), "rotate");
+        myGamePanel.getActionMap().put("rotate", myActionList.get(0));
+            
+        myGamePanel.getInputMap().put(KeyStroke.getKeyStroke("LEFT"), "left");
+        myGamePanel.getActionMap().put("left", myActionList.get(1));
+            
+        myGamePanel.getInputMap().put(KeyStroke.getKeyStroke("RIGHT"), "right");
+        myGamePanel.getActionMap().put("right", myActionList.get(2));
+            
+        myGamePanel.getInputMap().put(KeyStroke.getKeyStroke("DOWN"), "down");
+        myGamePanel.getActionMap().put("down", myActionList.get(3));
+            
+        myGamePanel.getInputMap().put(KeyStroke.getKeyStroke("SPACE"), "drop");
+        myGamePanel.getActionMap().put("drop", myActionList.get(4));
+        
+        
+        myGamePanel.getInputMap().put(KeyStroke.getKeyStroke("P"), "pause");
+        myGamePanel.getActionMap().put("pause", new MyKeyAction("pause", myBoard));
+        
+    }
+    
+    public boolean isGameRunning() {
+        return myGameRunning;
+    }
+
+    
+//    /**
+//     * 
+//     * @return The width of the frame
+//     */
+//    public int getFrameWidth() {
+//        return myFrame.getWidth();
+//    }
+//    
+//    /**
+//     * 
+//     * @return The height of the frame
+//     */
+//    public int getFrameHeight() {
+//        return myFrame.getHeight();
+//    }
+    
+    /**
+     * To check if timer is running.
+     * @return running status of the timer
+     */
+    public boolean isTimerRunning() {
+        final boolean result;
+        if (myTimer != null) {
+        result = myTimer.isRunning();
+        }
+        else result = false;
+        return result;
+    }
+    
+    // Method to be called when pause/unpause the game
+    
+    /**
+     * To stop/start the timer.
+     */
+    public void setMyTimer() {
+        if (myTimer.isRunning()) {
+            myTimer.stop();
+            myPauseGame = true;
+        } else {
+            myTimer.start();
+            myPauseGame = false;
+        }
+    }
+    
+    public TetrisPanel getMyTetrisPanel() {
+        return myGamePanel;
+    }
+    
+    public Border getBorder() {
+        return myBorder;
+    }
+
+//    public void pauseGame() throws InterruptedException {
+//         
+//        setPauseGame();
+//        if (myPauseGame) {
+//            listener.wait();
+//            
+//        }
+//        if (!myPauseGame) {
+//            myFrame.addKeyListener(listener);
+//        }
+//    }
+    
+//    /**
+//     * Pause/Unpause the game.
+//     */
+//    public void setPauseGame() {
+//        final Boolean result = !myPauseGame;
+//        myPauseGame = result;
+//    } // end PauseGame
+    
+    private final class MyKeyAction extends AbstractAction {
+
+        private String myText;
+        private Board myBoard;
+        public MyKeyAction(final String theText, final Board theBoard) {
+            super();
+            myText = theText;
+            myBoard = theBoard;
+        }
+        @Override
+        public void actionPerformed(final ActionEvent theEvent) {
+            if (myText.equals("rotate")) {
+                myBoard.rotate();
+            } else if (myText.equals("left")) {
+                myBoard.left();
+            } else if (myText.equals("right")) {
+                myBoard.right();
+            } else if (myText.equals("down")) {
+                myBoard.down();
+            } else if (myText.equals("drop")) {
+                myBoard.drop();
+            } else if (myText.equals("pause")) {
+                // This will start/stop the timer and setup
+                // the status for myPauseGame
+                TetrisGUI.this.setMyTimer();
+                
+                // Enable or unable the actions base on the value of myPauseGame 
+                enableActionList(!myPauseGame);
+   
+                    
+            }
+        }
+        
+    }
+    
+    public final void enableActionList(final boolean theBoolean) {
+        if (myActionList != null) {
+            for (int i = 0; i < 5; i++) {
+                myActionList.get(i).setEnabled(theBoolean);
+            }    
+        }
+    }
+    
+    /**
+     * Private class to create constraints for gridbag layout using in the class.
+     * @author Trinh
+     *
+     */
+    private final class GBC extends GridBagConstraints  {
+        
+        /**
+         * UID#.
+         */
+        private static final long serialVersionUID = 1L;
+
+        /**
+         * Constructor to create a gridbad constraint.
+         * @param theX the X
+         * @param theY the Y
+         * @param theWidth the width
+         * @param theHeight the height
+         */
+        GBC(final int theX, final int theY, final int theWidth, final int theHeight) {
+            super();
+            this.gridx = theX;
+            this.gridy = theY;
+            this.gridwidth = theWidth;
+            this.gridheight = theHeight;
+        }
+        
+        /**
+         * Method to set the insets for the constraints.
+         * @param thePad the dimension of the pad, 4 sides are the same
+         * @return the constraints with insets setup
+         */
+        public GBC setInsets(final int thePad) {
+            this.insets = new Insets(thePad, thePad, thePad, thePad);
+            return this;
+        }
+        
+        /**
+         * Method to set the insets for the constraints.
+         * @param theTop the top dimension of the pad
+         * @param theLeft the left pad
+         * @param theRight the right pad
+         * @param theBottom the bottom pad
+         * @return the constraints with insets setup
+         */
+        public GBC setInsets(final int theTop, final int theLeft,
+                             final int theBottom, final int theRight) {
+            this.insets = new Insets(theTop, theLeft, theBottom, theRight);
+            return this;
+        }
+    } // end Class GBC
+
+    @Override
+    public void focusGained(FocusEvent arg0) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void focusLost(FocusEvent arg0) {
+        // TODO Auto-generated method stub
+        
+    }
+
+
+
+
+}

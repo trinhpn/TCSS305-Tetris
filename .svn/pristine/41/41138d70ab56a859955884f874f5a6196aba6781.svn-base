@@ -1,0 +1,170 @@
+package view;
+
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.Observable;
+import java.util.Observer;
+
+import javax.swing.AbstractAction;
+import javax.swing.JFrame;
+import javax.swing.Timer;
+
+import model.Board;
+
+public class TetrisFrame implements Observer, ActionListener, PropertyChangeListener {
+
+    /**
+     * Minimum size for the frame.
+     */
+    private static final Dimension MIN_SIZE = new Dimension(600, 400);
+    
+    /**
+     * Thousand milliseconds per minute.
+     */
+    private int myDelay = 1000;
+    
+    /**
+     * The main container for the game.
+     */
+    private final JFrame myFrame;
+    
+    /**
+     * The panel displays the game.
+     */
+    private TetrisPanel myGamePanel;
+    
+    /**
+     * The panel displays the next piece.
+     */
+    private NextPiecePanel myNextPiecePanel;
+    
+    /**
+     * The panel displays the score.
+     */
+    private ScorePanel myScorePanel;
+    
+    /**
+     * The boolean which value is true if users pause the game.
+     */
+    private Boolean myPauseGame;
+    
+    /**
+     * The board that contains the data and control the game.
+     */
+    private Board myBoard;
+    
+    /**
+     * The timer of the game.
+     */
+    private Timer myTimer;
+    
+    private boolean myGameRunning;
+    
+    private ArrayList<MyKeyAction> myActionList;
+    
+    private int myBoardWidth = 10;
+    private int myBoardHeight = 20;
+    
+    public TetrisFrame() {
+        createBoard(myBoardWidth, myBoardHeight);
+        myFrame = new JFrame("TCSS 305 Tetris");
+        myFrame.setMinimumSize(MIN_SIZE);
+
+        myFrame.setLocationRelativeTo(null);
+        myFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        
+
+        myGameRunning = false;
+        myPauseGame = true;
+    }
+    
+    public void createBoard() {
+       myBoard = new Board();
+    }
+    
+    public void createBoard(final int theW, final int theH) {
+        myBoardWidth = theW;
+        myBoardHeight = theH;
+        myBoard = new Board(myBoardWidth, myBoardHeight);
+    }
+    
+    // Method to be called when pause/unpause the game
+    
+    /**
+     * To stop/start the timer.
+     */
+    public void setMyTimer() {
+        if (myTimer.isRunning()) {
+            myTimer.stop();
+            myPauseGame = true;
+        } else {
+            myTimer.start();
+            myPauseGame = false;
+        }
+    }
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent arg0) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void update(Observable o, Object arg) {
+        // TODO Auto-generated method stub
+        
+    }
+    
+    private final class MyKeyAction extends AbstractAction {
+
+        private String myText;
+        private Board myBoard;
+        public MyKeyAction(final String theText, final Board theBoard) {
+            super();
+            myText = theText;
+            myBoard = theBoard;
+        }
+        @Override
+        public void actionPerformed(final ActionEvent theEvent) {
+            if (myText.equals("rotate")) {
+                myBoard.rotate();
+            } else if (myText.equals("left")) {
+                myBoard.left();
+            } else if (myText.equals("right")) {
+                myBoard.right();
+            } else if (myText.equals("down")) {
+                myBoard.down();
+            } else if (myText.equals("drop")) {
+                myBoard.drop();
+            } else if (myText.equals("pause")) {
+                // This will start/stop the timer and setup
+                // the status for myPauseGame
+                TetrisFrame.this.setMyTimer();
+                
+                // Enable or unable the actions base on the value of myPauseGame 
+                enableActionList(!myPauseGame);
+   
+                    
+            }
+        }
+        
+    }
+    
+    public final void enableActionList(final boolean theBoolean) {
+        if (myActionList != null) {
+            for (int i = 0; i < 5; i++) {
+                myActionList.get(i).setEnabled(theBoolean);
+            }    
+        }
+    }
+
+}

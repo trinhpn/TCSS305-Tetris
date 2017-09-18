@@ -1,0 +1,164 @@
+/*
+ * Tetris part A 
+ * TCSS 305: Programming Practicum, Winter 2016
+ */
+package view;
+
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.util.Observable;
+import java.util.Observer;
+
+import javax.swing.JPanel;
+
+import model.Board;
+import model.MovableTetrisPiece;
+
+/**
+ * Create a panel display the next piece of the game.
+ * @author Trinh Pham
+ * @version 1222016
+ */
+public class NextPiecePanel extends JPanel implements Observer {
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
+    /**
+     * Roundness of the round rect.
+     */
+    private static final int CURVE = 10;
+    
+    /**
+     * Block size.
+     */
+    private static final int BLOCK_SIZE = 25;
+    
+    private static final int HALF_BLOCK = 12;
+
+    /**
+     * The width.
+     */
+    private static final int WIDTH = 151;
+    
+    /**
+     * The height.
+     */
+    private static final int HEIGHT = 96;
+    
+//    private final Board myBoard;
+    
+    /**
+     * Dimension of the panel.
+     */
+    private final Dimension mySize = new Dimension(WIDTH, HEIGHT);
+    
+    /**
+     * The next piece.
+     */
+    private MovableTetrisPiece myNextMovableTetrisPiece;
+    
+    /** 
+     * The String list, works similar to the one in tetris panel.
+     */
+    private String[] myList;
+
+    private int myWidth;
+    private int myHeight;
+    private Color myDrawColor;
+    private Color myFillColor;
+    private final TetrisGUI myGUI;
+    /**
+     * Constructor.
+     * @param theBoard the board data
+     */
+    public NextPiecePanel(final Board theBoard, final TetrisGUI theGUI) {
+        super();
+        myGUI = theGUI;
+        myDrawColor = Color.blue.darker();
+        myFillColor = Color.ORANGE.brighter();
+        this.setPreferredSize(mySize);
+//        myLabel = new JLabel();
+//        this.add(myLabel);
+        this.setBackground(Color.white);
+//        myBoard = theBoard;
+        this.setBorder(myGUI.getBorder());
+
+        theBoard.addObserver(this);
+
+    }
+
+    @Override
+    public void update(final Observable theObseravle, final Object theObject) {
+        if (theObject instanceof MovableTetrisPiece) {
+
+            if (myGUI != null && myGUI.isTimerRunning()) {
+                myNextMovableTetrisPiece = (MovableTetrisPiece) theObject;
+                
+                myHeight = myNextMovableTetrisPiece.getHeight();
+                
+                myWidth = myNextMovableTetrisPiece.getWidth();
+                myList = myNextMovableTetrisPiece.toString().split("\n");
+    
+               
+                repaint();
+            }
+        }
+        
+        
+        
+        
+    }
+    
+    @Override
+    public void paintComponent(final Graphics theGraphics) {
+        super.paintComponent(theGraphics);   
+        final Graphics2D g2d = (Graphics2D) theGraphics;
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
+                             RenderingHints.VALUE_ANTIALIAS_ON);
+
+        final int stroke = 4;
+        
+        if (myList != null) {
+            for (int i = 0; i < myList.length; i++) {
+                for (int j = 0; j < myList[i].length(); j++) {
+                    if (myList[i].charAt(j) != ' ') {
+                        g2d.setStroke(new BasicStroke(stroke));
+                        g2d.setColor(myDrawColor);
+                            g2d.drawRoundRect((j + 1) * BLOCK_SIZE, i * BLOCK_SIZE,
+                                                  BLOCK_SIZE, BLOCK_SIZE, CURVE, CURVE);
+                            g2d.setColor(myFillColor);
+    
+                            g2d.fillRoundRect((j + 1) * BLOCK_SIZE, i * BLOCK_SIZE,
+                                              BLOCK_SIZE, BLOCK_SIZE, CURVE, CURVE);
+                        
+//                        if (myWidth != 2) {
+//                        g2d.drawRoundRect((j + 3) * HALF_BLOCK, i * BLOCK_SIZE,
+//                                          BLOCK_SIZE, BLOCK_SIZE, CURVE, CURVE);
+//                        g2d.setColor(Color.ORANGE.brighter());
+//    
+              //          g2d.fillRoundRect((j + 1) * BLOCK_SIZE, i * BLOCK_SIZE,
+                                   //       BLOCK_SIZE, BLOCK_SIZE, CURVE, CURVE);
+                        
+
+                    }
+                }
+            }
+        }
+      
+    } // paintComponent
+    
+    public void setDrawColor(final Color theColor) {
+        myDrawColor = theColor;
+    }
+    
+    public void setFillColor(final Color theColor) {
+        myFillColor = theColor;
+    }
+}

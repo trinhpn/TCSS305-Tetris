@@ -1,0 +1,68 @@
+/*
+ * Tetris part A 
+ * TCSS 305: Programming Practicum, Winter 2016
+ */
+package view;
+
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+
+import model.Board;
+
+/**
+ * This class create a key listener for the game.
+ * @author Trinh
+ * @version 1222016
+ */
+public class MyKeyListener extends KeyAdapter {
+    /**
+     * Board data.
+     */
+    private final Board myBoard;
+    
+    /**
+     * The GUI.
+     */
+    private final TetrisGUI myGUI;
+    
+    /**
+     * Constructor.
+     * @param theBoard the passing board
+     * @param theGUI the passing gui
+     */
+    public MyKeyListener(final Board theBoard, final TetrisGUI theGUI) {
+        super();
+        myBoard = theBoard;
+        myGUI = theGUI;
+    }
+
+
+    @Override
+    public void keyPressed(final KeyEvent theEvent) {
+        if (theEvent.getKeyCode() == KeyEvent.VK_LEFT) {
+            myBoard.left();
+        } else if (theEvent.getKeyCode() == KeyEvent.VK_RIGHT) {
+            myBoard.right();
+
+        } else if (theEvent.getKeyCode() == KeyEvent.VK_UP) {
+            myBoard.rotate();
+
+        } else if (theEvent.getKeyCode() == KeyEvent.VK_DOWN) {
+            myBoard.down();
+
+        } else if (theEvent.getKeyCode() == KeyEvent.VK_SPACE) {
+            myBoard.drop();
+
+//        } else if (theEvent.getKeyCode() == KeyEvent.VK_P) {
+//            myGUI.setMyTimer();
+//            try {
+//                myGUI.pauseGame();
+//            }
+//            catch (InterruptedException e) {
+//                // TODO Auto-generated catch block
+//                e.printStackTrace();
+//            }
+        }
+
+    }
+}

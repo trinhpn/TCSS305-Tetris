@@ -1,0 +1,327 @@
+/*
+ * Tetris part A 
+ * TCSS 305: Programming Practicum, Winter 2016
+ */
+package view;
+
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.util.Observable;
+import java.util.Observer;
+
+import javax.swing.JColorChooser;
+import javax.swing.JComponent;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JSlider;
+import javax.swing.KeyStroke;
+import javax.swing.SwingConstants;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
+import com.sun.glass.events.KeyEvent;
+
+import model.Board;
+
+/**
+ * This class create a menu bar for the game.
+ * @author Trinh
+ * @version 1222016
+ */
+public class TetrisMenu extends JMenuBar implements Observer, FocusListener {
+    
+    /**
+     * UID#.
+     */
+    private static final long serialVersionUID = 1L;
+    
+    /** A ToolKit. */
+    private static final Toolkit KIT = Toolkit.getDefaultToolkit();
+    
+    /** The Dimension of the screen. */
+    private static final Dimension SCREEN_SIZE = KIT.getScreenSize();
+    
+    private static final int BLOCK_SIZE = 25;
+    /**
+     * The control menu.
+     */
+    private JMenu myGameControl;
+    
+    /**
+     * The help menu.
+     */
+    private JMenu myHelp;
+    
+    private JMenu myOption;
+    
+    private JMenu myLook;
+    
+    private Board myBoard;
+    
+    private final TetrisGUI myGUI;
+    
+    private JMenuItem myNewGame;
+    private JMenuItem myEndGame;
+    
+    private int myBoardWidth = 10;
+    private int myBoardHeight = 20;
+    
+    
+    private int myMaxBoardWidth;
+    private int myMaxBoardHeight;
+    
+    private Color myFillColor;
+    private Color myDrawColor;
+    
+    /**
+     * Constructor.
+     */
+    public TetrisMenu(final Board theBoard, final ScorePanel thePanel,
+                      final TetrisGUI theGUI) {
+        super();
+        myBoard = theBoard;
+        myGUI = theGUI;
+        myGameControl = new JMenu("Game");
+        myHelp = new JMenu("Help");
+        myOption = new JMenu("Option");
+        myLook = new JMenu("Visual");
+        this.add(myGameControl);
+        this.add(myHelp);
+        this.add(myOption);
+        myNewGame = new JMenuItem("New Game");
+        myEndGame = new JMenuItem("End Game");
+        setupHelpMenu();
+        setupGameMenu();
+        setupOptionMenu();
+        setupLookMenu();
+        myGameControl.addPropertyChangeListener(thePanel);
+        theBoard.addObserver(this);
+        addFocusListener(this);
+    }
+
+    public JMenu getMyGameControl() {
+        return myGameControl;
+    }
+    
+    public final void setupLookMenu() {
+        final JRadioButtonMenuItem grid = new JRadioButtonMenuItem("Visual Grid");
+        grid.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+             //   System.out.println(grid.isSelected());
+                myGUI.setDrawGrid(grid.isSelected());
+            }
+            
+        });
+        
+        myLook.add(grid);
+        myLook.addSeparator();
+        
+        final String name = new String("A Color Chooser");
+
+        final JMenuItem draw = new JMenuItem("Draw Color...", KeyEvent.VK_D);
+        draw.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(final ActionEvent theEvent) {
+                myDrawColor = JColorChooser.showDialog(null, name, null);
+                myGUI.getMyTetrisPanel().setDrawColor(myDrawColor);
+            }
+            
+        });
+        final JMenuItem fill = new JMenuItem("Fill Color...", KeyEvent.VK_F); 
+        fill.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(final ActionEvent theEvent) {
+                myFillColor = JColorChooser.showDialog(null, name, null);
+                myGUI.getMyTetrisPanel().setFillColor(myFillColor);
+            }
+            
+        });
+        
+        myLook.add(draw);
+        myLook.add(fill);
+        
+        this.add(myLook);
+    }
+    /**
+     * Setup method.
+     */
+    public final void setupHelpMenu() {
+        final String string = "Key Controls";
+        final JMenuItem keyControl = new JMenuItem(string);
+        keyControl.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(final ActionEvent theEvent) {
+                JOptionPane.showMessageDialog(null, "MOVE LEFT: Left Arrow\n" 
+                                     + "MOVE RIGHT: Right Arrow\n" + "ROTATE: Up Arrow\n"
+                                     + "SOFT DROP: Down Arrow\n" 
+                                     + "HARD DROP: Space bar",
+                                     string, JOptionPane.INFORMATION_MESSAGE);
+                
+            }
+            
+        });
+        keyControl.addFocusListener(this);
+        myHelp.add(keyControl);
+    } // end setupHelpMenu
+    
+    private void setupGameMenu() {
+        
+        
+        myEndGame.setEnabled(false);
+        myNewGame.setAccelerator(KeyStroke.getKeyStroke('N', java.awt.event.KeyEvent.CTRL_MASK));
+        myNewGame.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+                myEndGame.setEnabled(true);
+                myGUI.endGame();
+                JOptionPane.showMessageDialog(null, "Start a new game");
+                myGUI.setTimerDelay();
+               // myGUI.setBoard();
+                myGUI.startGame();
+                myNewGame.setEnabled(false);
+
+            }
+            
+        });
+        
+        myEndGame.setAccelerator(KeyStroke.getKeyStroke('E', java.awt.event.KeyEvent.CTRL_MASK));
+
+        myEndGame.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+                myGUI.endGame();
+                myNewGame.setEnabled(true);
+                JOptionPane.showMessageDialog(null, "GAME OVER");
+                myEndGame.setEnabled(false);
+            }
+            
+        });
+        
+        myGameControl.add(myNewGame);
+        myGameControl.add(myEndGame);
+    }
+    
+    private void getMaxTick() {
+      
+        myMaxBoardWidth = (int) SCREEN_SIZE.getWidth() / 2 /BLOCK_SIZE;
+        myMaxBoardHeight = (int) SCREEN_SIZE.getHeight() / BLOCK_SIZE - 10; 
+    }
+    private void setupOptionMenu() {
+        
+        getMaxTick();
+//        final JRadioButtonMenuItem grid1 = new JRadioButtonMenuItem("10 x 20");
+//        grid1.addActionListener(new ActionListener() {
+//
+//            @Override
+//            public void actionPerformed(final ActionEvent theEvent) {
+//                myGUI.setGrid(10, 20);                
+//            }     
+//        });
+//        final JRadioButtonMenuItem grid2 = new JRadioButtonMenuItem("20 x 20");
+//        grid2.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(final ActionEvent theEvent) {
+//                myGUI.setGrid(20, 20);
+//            }
+//        });
+//        
+//        
+//        final JRadioButtonMenuItem grid3 = new JRadioButtonMenuItem("15 x 30");
+//        myOption.add(grid1);
+        final String string = "Please click New Game to create a new board!";
+        final JMenu boardWidth = new JMenu("Width grid");
+        final JSlider widthSlider = new JSlider(SwingConstants.HORIZONTAL, 5, myMaxBoardWidth, 10);
+        widthSlider.setMajorTickSpacing(5);
+        widthSlider.setMinorTickSpacing(1);
+        widthSlider.setPaintLabels(true);
+        widthSlider.setPaintTicks(true);
+        boardWidth.add(widthSlider);
+        widthSlider.addChangeListener(new ChangeListener() {
+
+            @Override
+            public void stateChanged(final ChangeEvent theEvent) {
+                final JSlider source = (JSlider)theEvent.getSource();
+                if (!source.getValueIsAdjusting()) {
+                    myBoardWidth = widthSlider.getValue();
+    
+                    myGUI.setGrid(myBoardWidth, myBoardHeight);
+                    JOptionPane.showMessageDialog(null, string);
+                    myEndGame.setEnabled(false);
+                    myNewGame.setEnabled(true);
+                }
+            }
+            
+        });
+        myOption.add(boardWidth);
+        
+        final JMenu boardHeight = new JMenu("Height grid");
+        final JSlider heightSlider = new JSlider(SwingConstants.HORIZONTAL, 10, myMaxBoardHeight, 20);
+        heightSlider.setMajorTickSpacing(5);
+        heightSlider.setMinorTickSpacing(1);
+        heightSlider.setPaintLabels(true);
+        heightSlider.setPaintTicks(true);
+        boardHeight.add(heightSlider);
+        heightSlider.addChangeListener(new ChangeListener() {
+
+            @Override
+            public void stateChanged(final ChangeEvent theEvent) {
+                final JSlider source = (JSlider) theEvent.getSource();
+                if (!source.getValueIsAdjusting()) {
+                    myBoardHeight = heightSlider.getValue();
+                    
+                    myGUI.setGrid(myBoardWidth, myBoardHeight);
+                    JOptionPane.showMessageDialog(null, string);
+    
+                    myEndGame.setEnabled(false);
+                    myNewGame.setEnabled(true);
+                }
+            }
+            
+        });
+        myOption.add(boardHeight);        
+    }
+    
+    public int getBoardWidth() {
+        return myBoardWidth;
+    }
+    
+    public int getBoardHeight() {
+        return myBoardHeight;
+    }
+
+    @Override
+    public void update(final Observable theObject, final Object theData) {
+
+        if (theData instanceof Boolean) {
+            myNewGame.setEnabled(true);
+            myEndGame.setEnabled(false);
+        }
+    }
+
+    @Override
+    public void focusGained(FocusEvent e) {
+        myGUI.setRunning(false);
+        System.out.println("Menu gained focus");
+    }
+
+    @Override
+    public void focusLost(FocusEvent e) {
+        // TODO Auto-generated method stub
+        
+    }
+}

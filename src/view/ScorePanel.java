@@ -1,0 +1,282 @@
+/*
+ * Tetris part B 
+ * TCSS 305: Programming Practicum, Winter 2016
+ */
+package view;
+
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.Observable;
+import java.util.Observer;
+
+import javax.swing.JPanel;
+
+import model.Board;
+
+/**
+ * Create a panel displays the score.
+ * @author Trinh Pham
+ * @version 1222016
+ */
+public class ScorePanel extends JPanel implements Observer, PropertyChangeListener {
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+    
+    /**
+     * 100 pts for 1 line cleared.
+     */
+    private static final int MY_100 = 100;
+    
+    /**
+     * 200 pts for 2 lines cleared.
+     */
+    private static final int MY_200 = 200;
+
+    /**
+     * 400 pts for 3 lines cleared.
+     */
+    private static final int MY_400 = 400;
+
+    /**
+     * 800 pts for 4 lines cleared.
+     */
+    private static final int MY_800 = 800;
+    
+    /**
+     * The required lines for each level up.
+     */
+    private static final int LINE_TO_NEXT_LEVEL = 5;
+
+    /**
+     * Size of the panel.
+     */
+    private final Dimension mySize = new Dimension(251, 221);
+    
+    /**
+     * The GUI.
+     */
+    private TetrisGUI myGUI;
+    
+    /**
+     * String used to get to new line.
+     */
+    private String myNewLine = "\n";
+    
+    /**
+     * Initial level.
+     */
+    private Integer myLevel = 1;
+    
+    /**
+     * Initial line have been cleared.
+     */
+    private Integer myLine = 0;
+    
+    /**
+     * Lines need to level up.
+     */
+    private Integer myLineToClear = LINE_TO_NEXT_LEVEL;
+    
+    /**
+     * Numbers of one line have been cleared.
+     */
+    private Integer myOneLine = 0;
+    
+    /**
+     * Numbers of two lines have been cleared.
+     */
+    private Integer myTwoLine = 0;
+    
+    /**
+     * Numbers of 3 lines have been cleared.
+     */
+    private Integer myThreeLine = 0;
+    
+    /**
+     * Numbers of 4 lines have been cleared.
+     */
+    private Integer myFourLine = 0;
+    
+    /**
+     * Total score.
+     */
+    private Integer myScore = 0;
+    
+    /**
+     * Text display of level.
+     */
+    private String myLevelText;
+    
+    /**
+     * Text display of score.
+     */
+    private String myScoreText;
+    
+    /**
+     * Text display of line.
+     */
+    private String myLineText;
+    
+    /**
+     * Text display of needed lines for next level.
+     */
+    private String myNeedText;
+    
+    /**
+     * Constructor.
+     * @param theBoard the board
+     * @param theGUI the gui
+     */
+    public ScorePanel(final Board theBoard, final TetrisGUI theGUI) {
+        super();
+        
+        myGUI = theGUI;
+        this.setPreferredSize(mySize);
+        this.setBackground(Color.white);
+        this.setBorder(myGUI.getBorder());
+        theBoard.addObserver(this);
+        
+        setupText();
+    }
+    
+    /**
+     * Reset the score after each game.
+     */
+    public void resetScore() {
+        myLevel = 1;
+        myLine = 0;
+        myLineToClear = LINE_TO_NEXT_LEVEL;
+        myOneLine = 0;
+        myTwoLine = 0;
+        myThreeLine = 0;
+        myFourLine = 0;
+        myScore = 0;
+        setupText();
+        repaint();
+    }
+    
+    /**
+     * Set up the texts to draw on score panel.
+     */
+    private void setupText() {
+        myLevelText = new String("My level: " + myLevel + myNewLine);
+        myScoreText = new String("My score: " + myScore + myNewLine);
+        myLineText = new String("Lines have been cleared: " + myLine + myNewLine);
+        myNeedText = new String("Lines needed for next level: " + myLineToClear);
+    }
+    
+    
+
+    @Override
+    public void update(final Observable theObject, final Object theData) {
+        if (theData instanceof Integer[]) {
+
+            if (theData != null) {
+               
+                final Integer[] list = (Integer[]) theData;
+                final int line = list.length;
+                myLine = myLine + line;
+                final int temp = myLineToClear - line;
+                myLineToClear = myLineToClear - line;
+                
+                // Check to increase the level every 5 lines cleared
+                // also notify GUI that level up to set new delay for timer
+                
+                updateLevel(temp);
+
+
+                // Checking the number of cleared line
+                // Depend on this number to update the score
+                if (line == 1) {
+                    myOneLine++;
+                } else if (line == 2) {
+                    myTwoLine++;
+                } else if (line == 3) {
+                    myThreeLine++;  
+    
+                } else if (line == 4) {
+                    myFourLine++;     
+                }
+            }
+
+            myScore = myOneLine * MY_100 + myTwoLine * MY_200
+                            + myThreeLine * MY_400 + myFourLine * MY_800;
+            setupText();
+
+            repaint();
+        
+        }    
+        
+        
+        if (theData instanceof String) {
+            if (!myGUI.isGameRunning()) {
+                resetScore();
+                setupText();
+                repaint();
+            }
+        }
+
+        
+    } // update method
+    
+    @Override
+    public void paintComponent(final Graphics theGraphics) {
+        super.paintComponent(theGraphics);
+        final Graphics2D g2d = (Graphics2D) theGraphics;
+        
+        final Font font = new Font(Font.SANS_SERIF, Font.BOLD, 16);
+        g2d.setFont(font);
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
+                             RenderingHints.VALUE_ANTIALIAS_ON);
+        
+        //g2d.drawRect(0, 0, this.getWidth() - 1, this.getHeight() - 1);
+        
+        final int space = this.getHeight() / 5;
+        final int sizeText = 10;
+        g2d.drawString(myLevelText, sizeText, space);
+        g2d.drawString(myScoreText, sizeText, space * 2);
+        g2d.drawString(myLineText, sizeText, space * 3);
+        g2d.drawString(myNeedText, sizeText, space * 4);
+        
+    }
+
+    @Override
+    public void propertyChange(final PropertyChangeEvent theEvent) {
+        System.out.println(theEvent.getPropertyName());
+        if (theEvent.getPropertyName().equals("new game")) {
+            resetScore();
+            repaint();
+        }
+        
+    }
+    
+    /**
+     * Helper method to check if users level up when clear some lines.
+     * @param theLine the line
+     */
+    private void updateLevel(final int theLine) {
+        final String lv = "level";            
+        if (theLine == 0) {
+            myLevel++;
+            this.firePropertyChange(lv, null, myLevel);
+            myLineToClear = LINE_TO_NEXT_LEVEL;            
+        }
+        if (theLine < 0) {
+            myLevel++;
+            this.firePropertyChange(lv, null, myLevel);
+            myLineToClear = LINE_TO_NEXT_LEVEL + theLine;
+        
+
+        }
+    }
+
+}

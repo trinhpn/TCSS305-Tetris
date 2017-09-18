@@ -1,0 +1,42 @@
+/*
+ * Tetris part B 
+ * TCSS 305: Programming Practicum, Winter 2016
+ */
+package view;
+
+import com.sun.media.codec.audio.mp3.JavaDecoder;
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.media.Codec;
+
+import javax.media.PlugInManager;
+
+/**
+ * Driver class.
+ * @author Trinh Pham
+ * @version 1222016
+ */
+public class TetrisMain implements ActionListener {
+
+    /**
+     * Main method.
+     * @param theArgs the argument
+     */
+    public static void main(final String[] theArgs) {
+        final Codec c = new JavaDecoder();
+        PlugInManager.addPlugIn("com.sun.media.codec.audio.mp3.JavaDecoder",
+                                c.getSupportedInputFormats(),
+                                c.getSupportedOutputFormats(null),
+                                PlugInManager.CODEC);
+        final TetrisGUI gui = new TetrisGUI();
+        gui.start();
+    }
+
+    @Override
+    public void actionPerformed(final ActionEvent theEvent) {
+        
+    }
+
+}

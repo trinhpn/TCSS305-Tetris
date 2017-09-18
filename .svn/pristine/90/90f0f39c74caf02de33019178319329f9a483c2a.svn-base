@@ -1,0 +1,33 @@
+/*
+ * Tetris part A 
+ * TCSS 305: Programming Practicum, Winter 2016
+ */
+package view;
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import model.Board;
+
+/**
+ * Driver class.
+ * @author Trinh Pham
+ * @version 1222016
+ */
+public class TetrisMain implements ActionListener {
+
+    /**
+     * Main method.
+     * @param theArgs the argument
+     */
+    public static void main(final String[] theArgs) {
+        
+        final TetrisGUI gui = new TetrisGUI();
+    }
+
+    @Override
+    public void actionPerformed(final ActionEvent theEvent) {
+        
+    }
+
+}
